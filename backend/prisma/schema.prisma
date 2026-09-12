@@ -1,0 +1,226 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  role         String   @default("ADMIN") // ADMIN, EDITOR
+  avatar       String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Author {
+  id          String   @id @default(uuid())
+  name        String
+  slug        String   @unique
+  bio         String?
+  avatar      String?
+  email       String?
+  socialLinks String?  // JSON string e.g. {"twitter": "...", "linkedin": "..."}
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  posts       Post[]
+}
+
+model Category {
+  id          String   @id @default(uuid())
+  name        String
+  slug        String   @unique
+  description String?
+  icon        String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  posts       Post[]
+}
+
+model Tag {
+  id        String    @id @default(uuid())
+  name      String
+  slug      String    @unique
+  posts     PostTag[]
+  createdAt DateTime  @default(now())
+}
+
+model Post {
+  id            String       @id @default(uuid())
+  title         String
+  slug          String       @unique
+  excerpt       String
+  content       String
+  featuredImage String?
+  readingTime   Int          @default(4)
+  type          String       @default("NEWS") // NEWS, REVIEW, COMPARISON, TUTORIAL, SOFTWARE, DEAL
+  status        String       @default("DRAFT") // DRAFT, PUBLISHED, SCHEDULED
+  publishedAt   DateTime?
+  isFeatured    Boolean      @default(false)
+  isTrending    Boolean      @default(false)
+  isSponsored   Boolean      @default(false)
+  sponsorId     String?
+  sponsor       Sponsor?     @relation(fields: [sponsorId], references: [id], onDelete: SetNull)
+  categoryId    String
+  category      Category     @relation(fields: [categoryId], references: [id])
+  authorId      String
+  author        Author       @relation(fields: [authorId], references: [id])
+  viewCount     Int          @default(0)
+  sharesCount   Int          @default(0)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  tags          PostTag[]
+  seo           SeoMetadata?
+  views         PostViewLog[]
+}
+
+model PostTag {
+  postId String
+  tagId  String
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  tag    Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([postId, tagId])
+}
+
+model Sponsor {
+  id              String   @id @default(uuid())
+  name            String
+  slug            String   @unique
+  logo            String?
+  websiteUrl      String
+  disclosureText String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  posts           Post[]
+}
+
+model AiTool {
+  id           String   @id @default(uuid())
+  name         String
+  slug         String   @unique
+  logo         String?
+  description  String
+  pricingType  String   @default("FREEMIUM") // FREE, FREEMIUM, PAID, FREE_TRIAL
+  startingPrice String?
+  rating       Float    @default(4.5)
+  category     String
+  websiteUrl   String
+  affiliateUrl String?
+  features     String?  // JSON string
+  pros         String?  // JSON string
+  cons         String?  // JSON string
+  isFeatured   Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model AffiliateLink {
+  id           String               @id @default(uuid())
+  title        String
+  slug         String               @unique
+  originalUrl  String
+  affiliateUrl String
+  code         String?
+  category     String?
+  totalClicks  Int                  @default(0)
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+  clicks       AffiliateClickLog[]
+}
+
+model AffiliateClickLog {
+  id              String        @id @default(uuid())
+  affiliateLinkId String
+  affiliateLink   AffiliateLink @relation(fields: [affiliateLinkId], references: [id], onDelete: Cascade)
+  postSlug        String?
+  referrer        String?
+  ipHash          String?
+  createdAt       DateTime      @default(now())
+}
+
+model AdSlot {
+  id           String   @id @default(uuid())
+  slotKey      String   @unique // HEADER, HOMEPAGE, ARTICLE_TOP, ARTICLE_MIDDLE, ARTICLE_BOTTOM, SIDEBAR, FOOTER
+  name         String
+  isEnabled    Boolean  @default(true)
+  codeSnippet  String?
+  fallbackHtml String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model SeoMetadata {
+  id              String   @id @default(uuid())
+  postId          String?  @unique
+  post            Post?    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  pageId          String?  @unique
+  page            Page?    @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  title           String
+  metaDescription String
+  keywords        String?
+  canonicalUrl    String?
+  ogImage         String?
+  twitterCard     String?  @default("summary_large_image")
+  schemaType      String?  @default("Article")
+  altText         String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Page {
+  id          String       @id @default(uuid())
+  title       String
+  slug        String       @unique
+  content     String
+  isPublished Boolean      @default(true)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  seo         SeoMetadata?
+}
+
+model SiteSetting {
+  key       String   @id
+  value     String   // JSON string
+  category  String   @default("general")
+  updatedAt DateTime @updatedAt
+}
+
+model AgentApiKey {
+  id          String          @id @default(uuid())
+  name        String
+  keyPrefix   String          // e.g. "tp_ag_a1b2c3d4"
+  keyHash     String          @unique
+  permissions String          // JSON array e.g. ["content:read", "content:write", ...]
+  isActive    Boolean         @default(true)
+  lastUsedAt  DateTime?
+  revokedAt   DateTime?
+  createdAt   DateTime        @default(now())
+  auditLogs   AgentAuditLog[]
+}
+
+model AgentAuditLog {
+  id         String       @id @default(uuid())
+  apiKeyId   String
+  apiKey     AgentApiKey  @relation(fields: [apiKeyId], references: [id], onDelete: Cascade)
+  action     String       // e.g. "post:create", "post:publish", "seo:update"
+  entityType String       // e.g. "Post", "AiTool", "AffiliateLink"
+  entityId   String?
+  payload    String?      // JSON string of request parameters (no secrets)
+  status     String       @default("SUCCESS") // SUCCESS, DENIED, FAILED
+  ipAddress  String?
+  createdAt  DateTime     @default(now())
+}
+
+model PostViewLog {
+  id        String   @id @default(uuid())
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  ipHash    String?
+  createdAt DateTime @default(now())
+}
