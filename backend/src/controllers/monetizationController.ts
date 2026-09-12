@@ -43,7 +43,7 @@ export const createAffiliateLink = async (req: Request, res: Response) => {
 
 export const trackAffiliateClick = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const { postSlug } = req.body;
     const referrer = (req.headers.referer as string) || '';
     const ipAddress = (req.headers['x-forwarded-for'] as string) || req.socket.remoteAddress || '127.0.0.1';

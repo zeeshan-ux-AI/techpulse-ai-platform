@@ -90,7 +90,7 @@ export const createAgentKey = async (req: Request, res: Response) => {
 
 export const revokeAgentKey = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const key = await prisma.agentApiKey.findUnique({ where: { id } });
     if (!key) {
       return res.status(404).json({ success: false, error: 'Agent API key not found.' });
@@ -123,7 +123,7 @@ export const revokeAgentKey = async (req: Request, res: Response) => {
 
 export const rotateAgentKey = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const existingKey = await prisma.agentApiKey.findUnique({ where: { id } });
     if (!existingKey) {
       return res.status(404).json({ success: false, error: 'Agent API key not found.' });
@@ -267,7 +267,7 @@ export const agentCreatePost = async (req: AgentRequest, res: Response) => {
 
 export const agentUpdateSeo = async (req: AgentRequest, res: Response) => {
   try {
-    const { postId } = req.params;
+    const postId = req.params.postId as string;
     const { title, metaDescription, keywords, canonicalUrl, ogImage, schemaType } = req.body;
 
     const post = await prisma.post.findUnique({ where: { id: postId } });

@@ -104,7 +104,7 @@ export const getPosts = async (req: Request, res: Response) => {
 
 export const getPostBySlug = async (req: Request, res: Response) => {
   try {
-    const { slug } = req.params;
+    const slug = req.params.slug as string;
     const post = await prisma.post.findUnique({
       where: { slug },
       include: {
@@ -141,7 +141,7 @@ export const getPostBySlug = async (req: Request, res: Response) => {
 
     const formattedPost = {
       ...post,
-      tags: post.tags.map((t: any) => t.tag),
+      tags: ((post as any).tags || []).map((t: any) => t.tag),
     };
 
     return res.json({ success: true, data: formattedPost });
@@ -152,7 +152,7 @@ export const getPostBySlug = async (req: Request, res: Response) => {
 
 export const getRelatedPosts = async (req: Request, res: Response) => {
   try {
-    const { slug } = req.params;
+    const slug = req.params.slug as string;
     const currentPost = await prisma.post.findUnique({
       where: { slug },
       select: { id: true, categoryId: true },
@@ -272,7 +272,7 @@ export const createPost = async (req: Request, res: Response) => {
 
 export const updatePost = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const {
       title,
       slug,
@@ -384,7 +384,7 @@ export const updatePost = async (req: Request, res: Response) => {
 
     return res.json({
       success: true,
-      data: finalPost ? { ...finalPost, tags: finalPost.tags.map((t: any) => t.tag) } : null,
+      data: finalPost ? { ...finalPost, tags: ((finalPost as any).tags || []).map((t: any) => t.tag) } : null,
     });
   } catch (err: any) {
     return res.status(500).json({ success: false, error: err.message });
@@ -393,7 +393,7 @@ export const updatePost = async (req: Request, res: Response) => {
 
 export const deletePost = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     await prisma.post.delete({ where: { id } });
     return res.json({ success: true, message: 'Post deleted successfully.' });
   } catch (err: any) {

@@ -65,7 +65,7 @@ export const getTools = async (req: Request, res: Response) => {
 
 export const getToolBySlug = async (req: Request, res: Response) => {
   try {
-    const { slug } = req.params;
+    const slug = req.params.slug as string;
     const tool = await prisma.aiTool.findUnique({ where: { slug } });
     if (!tool) {
       return res.status(404).json({ success: false, error: 'AI Tool not found.' });
@@ -144,7 +144,7 @@ export const createTool = async (req: Request, res: Response) => {
 
 export const updateTool = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const {
       name,
       slug,
@@ -199,7 +199,7 @@ export const updateTool = async (req: Request, res: Response) => {
 
 export const deleteTool = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     await prisma.aiTool.delete({ where: { id } });
     return res.json({ success: true, message: 'AI Tool deleted.' });
   } catch (err: any) {
