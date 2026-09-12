@@ -18,7 +18,8 @@ export async function GET() {
   };
 
   try {
-    const res = await fetch('http://localhost:5000/api/v1/rss', { next: { revalidate: 60 } });
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://techpulse-ai-platform-1.onrender.com/api';
+    const res = await fetch(`${baseUrl}/v1/rss`, { next: { revalidate: 60 } });
     const data = await res.json();
     if (data?.items) feedData = data;
   } catch (err) {}
